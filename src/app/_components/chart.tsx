@@ -6,16 +6,20 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
+  LineElement,
+  PointElement,
   Title,
   Tooltip,
   Legend,
 } from "chart.js";
-import { Bar, type ChartProps } from "react-chartjs-2";
+import { Bar, Line, Scatter } from "react-chartjs-2";
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
+  LineElement,
+  PointElement,
   Title,
   Tooltip,
   Legend,
@@ -32,5 +36,14 @@ type Props = {
 };
 
 export default function Chart({ type, structure }: Props) {
-  return <Bar data={structure} />;
+  switch (type) {
+    case "bar":
+      return <Bar data={structure} />;
+    case "line":
+      return <Line data={structure} />;
+    case "scatter":
+      return <Scatter data={structure} />;
+    default:
+      return <p>Unsupported chart type</p>;
+  }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import Upload from "./Upload";
+import Upload from "./upload";
 
 export default function FileUpload() {
   async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -65,10 +65,6 @@ export default function FileUpload() {
       });
     }
 
-    // function initializeObjectStore(db: IDBDatabase, storeName: string, keys: string[]){
-
-    // }
-
     function storeData(
       db: IDBDatabase,
       data: Record<string, number | null>[],
@@ -96,7 +92,7 @@ export default function FileUpload() {
       <div className="text-text-100">
         <label>
           <input type="file" hidden onChange={handleFileUpload} />
-          <div className="border-primary-500 text-primary-500 mx-auto flex h-1/5 w-3/4 flex-col items-center justify-center gap-3 rounded border-4 border-dashed p-4 text-2xl">
+          <div className="mx-auto flex w-2/4 flex-col items-center justify-center gap-3 rounded border-2 border-dashed border-primary-500 p-4 text-2xl text-primary-500">
             <div className="flex flex-col items-center justify-center">
               <h2>Click to select file</h2>
               <Upload />
