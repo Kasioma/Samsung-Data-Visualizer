@@ -95,7 +95,23 @@
     @apply w-[50%];
   }
 
-  .selected {
+  .selected-chart {
     @apply pointer-events-none after:absolute after:-bottom-[5px] after:left-0 after:h-[1px] after:w-[50%] after:rounded-xl after:bg-background-50 after:content-[''];
+  }
+
+  .page-type {
+    @apply relative cursor-pointer text-xl;
+  }
+
+  .page-type::after {
+    @apply absolute -bottom-[5px] left-0 h-[1px] w-[0%] rounded-xl bg-background-50 duration-300 content-[''];
+  }
+
+  .page-type:hover::after {
+    @apply w-[100%];
+  }
+
+  .selected-page {
+    @apply pointer-events-none after:absolute after:-bottom-[5px] after:left-0 after:h-[1px] after:w-[100%] after:rounded-xl after:bg-background-50 after:content-[''];
   }
 }

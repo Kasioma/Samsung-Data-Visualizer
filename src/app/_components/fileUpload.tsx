@@ -2,7 +2,29 @@
 
 import Upload from "./upload";
 
-export default function FileUpload() {
+type ResponseType = {
+  data: Record<string, number | null>[];
+  invalidData: number;
+  id_student: string[];
+  id_activity: string[];
+  id_session: string[];
+  timestamp: Record<number, string>[];
+};
+
+type OnFileUploadComplete = (
+  fileName: string,
+  invalidData: number,
+  id_student: string[],
+  id_activity: string[],
+  id_session: string[],
+  timestamp: Record<number, string>[],
+) => void;
+
+interface FileUploadProps {
+  onFileUploadComplete: OnFileUploadComplete;
+}
+
+const FileUpload: React.FC<FileUploadProps> = ({ onFileUploadComplete }) => {
   async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
     if (!event.target.files || event.target.files.length === 0) return;
 
@@ -18,13 +40,20 @@ export default function FileUpload() {
 
     if (!response.ok) throw new Error("Network response was not ok");
 
-    type DataType = Record<string, number | null>;
-
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const data: DataType[] = await response.json();
+    const apiResponse: ResponseType = await response.json();
     const db = await openDatabase("File", 1);
     await clearDatabase(db);
-    await storeData(db, data);
+    await storeData(db, apiResponse.data);
+
+    onFileUploadComplete(
+      file.name,
+      apiResponse.invalidData,
+      apiResponse.id_student,
+      apiResponse.id_activity,
+      apiResponse.id_session,
+      apiResponse.timestamp,
+    );
 
     function openDatabase(name: string, version: number): Promise<IDBDatabase> {
       return new Promise((resolve, reject) => {
@@ -92,14 +121,14 @@ export default function FileUpload() {
       <div className="text-text-100">
         <label>
           <input type="file" hidden onChange={handleFileUpload} />
-          <div className="mx-auto flex w-2/4 flex-col items-center justify-center gap-3 rounded border-2 border-dashed border-primary-500 p-4 text-2xl text-primary-500">
-            <div className="flex flex-col items-center justify-center">
-              <h2>Click to select file</h2>
-              <Upload />
-            </div>
+          <div className="mx-auto flex w-3/4 cursor-pointer flex-col items-center justify-center gap-3 rounded border border-dashed p-4 text-3xl text-primary-50">
+            <Upload />
+            <p className="text-sm">Click to Upload</p>
           </div>
         </label>
       </div>
     </>
   );
-}
+};
+
+export default FileUpload;
