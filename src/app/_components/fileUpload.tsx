@@ -40,8 +40,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploadComplete }) => {
 
     if (!response.ok) throw new Error("Network response was not ok");
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const apiResponse: ResponseType = await response.json();
+    const apiResponse = (await response.json()) as ResponseType;
     const db = await openDatabase("File", 1);
     await clearDatabase(db);
     await storeData(db, apiResponse.data);

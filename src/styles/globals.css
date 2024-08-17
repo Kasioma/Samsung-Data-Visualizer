@@ -115,3 +115,25 @@
     @apply pointer-events-none after:absolute after:-bottom-[5px] after:left-0 after:h-[1px] after:w-[100%] after:rounded-xl after:bg-background-50 after:content-[''];
   }
 }
+
+.chart-container {
+  width: 100%;
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+
+.chart-container::-webkit-scrollbar {
+  width: 12px;
+}
+
+.chart-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.chart-container::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+.chart-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

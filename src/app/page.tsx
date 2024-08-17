@@ -17,32 +17,120 @@ type Label = {
   data: string[];
 };
 
-const defaultDatasets: Datasets = [
+type GeneralDatasets = {
+  label: string;
+  datasets: Datasets;
+}[];
+
+const defaultDatasets: GeneralDatasets = [
   {
     label: "value_heart_rate",
-    data: [70, 75, 72, 80, 78, 76],
+    datasets: [
+      {
+        label: "Student 1",
+        data: [70, 75, 72, 80, 78, 76],
+      },
+      {
+        label: "Student 3",
+        data: [70, 75, 72, 80, 78, 76],
+      },
+      {
+        label: "Student 2",
+        data: [70, 75, 72, 80, 78, 76],
+      },
+    ],
   },
   {
     label: "value_ibi_0",
-    data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+    datasets: [
+      {
+        label: "Student 1",
+        data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+      },
+      {
+        label: "Student 2",
+        data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+      },
+      {
+        label: "Student 3",
+        data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+      },
+    ],
   },
   {
     label: "value_ibi_1",
-    data: [0.82, 0.88, 0.85, 0.86, 0.87, 0.83],
+    datasets: [
+      {
+        label: "Student 1",
+        data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+      },
+      {
+        label: "Student 2",
+        data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+      },
+      {
+        label: "Student 3",
+        data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+      },
+    ],
   },
   {
     label: "value_ibi_2",
-    data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+    datasets: [
+      {
+        label: "Student 1",
+        data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+      },
+      {
+        label: "Student 2",
+        data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+      },
+      {
+        label: "Student 3",
+        data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+      },
+    ],
   },
   {
     label: "value_ibi_3",
-    data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+    datasets: [
+      {
+        label: "Student 1",
+        data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+      },
+      {
+        label: "Student 2",
+        data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+      },
+      {
+        label: "Student 3",
+        data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+      },
+    ],
   },
   {
     label: "value_ibi_4",
-    data: [0.82, 0.88, 0.85, 0.86, 0.87, 0.83],
+    datasets: [
+      {
+        label: "Student 1",
+        data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+      },
+      {
+        label: "Student 2",
+        data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+      },
+      {
+        label: "Student 3",
+        data: [0.85, 0.9, 0.88, 0.87, 0.86, 0.89],
+      },
+    ],
   },
 ];
+
+type StudentsTimes = {
+  student: string;
+  data: Record<number, number[]>;
+}[];
 
 function maskedLabel(input: string) {
   switch (input) {
@@ -67,14 +155,72 @@ const abscissaDefault: Label[] = [
   { label: "Validity", data: ["Valid", "Invalid"] },
 ];
 
-function fetchData(
-  inputLabel: Label,
-  inputDatasets: Datasets,
-  inputModifier: string,
-) {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open("File", 1);
+const createStudentDataObjects = (students: string[], inputTime: number[]) => {
+  return students.map((student) => {
+    const data = inputTime.reduce(
+      (acc, time) => {
+        acc[time] = [];
+        return acc;
+      },
+      {} as Record<number, number[]>,
+    );
 
+    return {
+      student,
+      data,
+    };
+  });
+};
+
+async function fetchData(
+  inputLabel: Label,
+  inputDatasets: string,
+  inputTime: number[],
+): Promise<Datasets> {
+  return new Promise((resolve, reject) => {
+    console.log(inputLabel, inputDatasets);
+    const request = indexedDB.open("File", 1);
+    const result: Datasets = [];
+    let inputData: number[] = inputTime;
+    if (inputLabel.label !== "timestamp" && inputLabel.label !== "Validity") {
+      const matchingLabel = abscissaDefault.find(
+        (labelObj) => labelObj.label === inputLabel.label,
+      );
+
+      if (matchingLabel && Array.isArray(matchingLabel.data)) {
+        inputData = matchingLabel.data
+          .map((item) => {
+            const number = Number(item);
+
+            if (!isNaN(number)) {
+              return number;
+            } else {
+              const match = item.match(/\d+/);
+              return match ? Number(match[0]) : 0;
+            }
+          })
+          .filter((number) => number !== null);
+      }
+    }
+    let studentDataObjects: StudentsTimes;
+    if (inputLabel.label === "Validity")
+      result.push({
+        label: "Validity",
+        data: [0, 0],
+      });
+    else {
+      const students = abscissaDefault
+        .filter((labels) => labels.label === "id_student")
+        .flatMap((item) => item.data.map((value) => value));
+      students.map((item) =>
+        result.push({
+          label: "Student " + item,
+          data: [],
+        }),
+      );
+
+      studentDataObjects = createStudentDataObjects(students, inputData);
+    }
     request.onsuccess = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
       const transaction = db.transaction("data", "readonly");
@@ -83,12 +229,66 @@ function fetchData(
 
       dataRequest.onsuccess = () => {
         const allRecords = dataRequest.result;
-        const labels = allRecords.map(
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-          (record) => record[inputLabel.label],
-        );
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        resolve(labels);
+        if (inputLabel.label !== "Validity") {
+          allRecords.forEach((record) => {
+            const currentObject = studentDataObjects.find(
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              (obj) => parseInt(obj.student) === record.id_student,
+            );
+
+            if (
+              currentObject &&
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              record[inputDatasets] !== null &&
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              record[inputDatasets] != 0
+            ) {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+              const key = record[inputLabel.label];
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              if (currentObject.data[key]) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
+                currentObject.data[key]?.push(record[inputDatasets]);
+              } else {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                currentObject.data[key] = [record[inputDatasets]];
+              }
+            }
+          });
+          studentDataObjects.forEach((item) => {
+            const studentKey = "Student " + item.student;
+
+            const studentResult = result.find(
+              (res) => res.label === studentKey,
+            );
+
+            if (studentResult) {
+              Object.entries(item.data).forEach(([timestamp, values]) => {
+                if (values.length === 0) {
+                  studentResult.data.push(0);
+                } else {
+                  const sum = values.reduce((acc, value) => acc + value, 0);
+                  const average = sum / values.length;
+                  studentResult.data.push(average);
+                }
+              });
+            }
+          });
+          resolve(result);
+        } else {
+          allRecords.forEach((record) => {
+            const studentResult = result.find(
+              (res) => res.label === "Validity",
+            );
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            if (record[inputDatasets] !== null) {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              if (record[inputDatasets] !== 0) studentResult!.data[0]++;
+              else studentResult!.data[1]++;
+            }
+          });
+          resolve(result);
+        }
       };
       dataRequest.onerror = (event) => {
         reject((event.target as IDBOpenDBRequest).error);
@@ -115,7 +315,11 @@ export default function HomePage() {
 
   const [ordinate, setOrdinate] = useState<Datasets>(empty);
 
+  const [defaultOrdinate, setDefaultOrdinate] = useState<string>("");
+
   const [invalidData, setInvalidData] = useState<number>(0);
+
+  const [parsedTime, setParsedTime] = useState<number[]>([]);
 
   const handleChartType = (chartType: string) => {
     setSelectedChart(chartType);
@@ -142,45 +346,72 @@ export default function HomePage() {
     },
   });
 
-  const handleLabelChange = (input: string) => {
+  const handleLabelChange = async (input: string) => {
     const selectedLabel = abscissaSet.find((label) => label.label === input);
     if (selectedLabel) {
-      setAbscissa(selectedLabel);
-      setProperties((prevProperties) => ({
-        ...prevProperties,
-        type: selectedChart,
-        structure: {
-          labels: selectedLabel,
-          datasets: ordinate,
-        },
-      }));
+      if (selectedFile === "default") {
+        setAbscissa(selectedLabel);
+        setProperties((prevProperties) => ({
+          ...prevProperties,
+          type: selectedChart,
+          structure: {
+            labels: selectedLabel,
+            datasets: ordinate,
+          },
+        }));
+      } else {
+        const newProperties: Datasets = await fetchData(
+          selectedLabel,
+          defaultOrdinate,
+          parsedTime,
+        );
+        setAbscissa(selectedLabel);
+        setOrdinate(newProperties);
+        setProperties((prevProperties) => ({
+          ...prevProperties,
+          type: selectedChart,
+          structure: {
+            labels: selectedLabel,
+            datasets: newProperties,
+          },
+        }));
+      }
     }
   };
 
-  const handleDatasetChange = (input: string) => {
+  const handleDatasetChange = async (input: string) => {
     if (selectedFile === "default") {
-      setOrdinate((prevOrdinate) => {
-        const exists = prevOrdinate.find((set) => set.label === input);
-        const updatedDatasets = exists
-          ? prevOrdinate.filter((set) => set.label !== input)
-          : [
-              ...prevOrdinate,
-              ...(defaultDatasets.find((set) => set.label === input)
-                ? [defaultDatasets.find((set) => set.label === input)!]
-                : []),
-            ];
-
+      const selectedDataset = defaultDatasets.find(
+        (set) => set.label === input,
+      );
+      if (selectedDataset) {
+        setOrdinate(selectedDataset.datasets);
         setProperties((prevProperties) => ({
           ...prevProperties,
           type: selectedChart,
           structure: {
             labels: abscissa,
-            datasets: updatedDatasets,
+            datasets: selectedDataset.datasets,
           },
         }));
-
-        return updatedDatasets;
-      });
+      }
+      setDefaultOrdinate(input);
+    } else {
+      const newProperties: Datasets = await fetchData(
+        abscissa,
+        input,
+        parsedTime,
+      );
+      setOrdinate(newProperties);
+      setProperties((prevProperties) => ({
+        ...prevProperties,
+        type: selectedChart,
+        structure: {
+          labels: abscissa,
+          datasets: newProperties,
+        },
+      }));
+      setDefaultOrdinate(input);
     }
   };
 
@@ -194,7 +425,6 @@ export default function HomePage() {
   ) => {
     setSelectedFile(fileName);
     setInvalidData(invalidData);
-    setOrdinate(empty);
     abscissaDefault.forEach((item) => {
       switch (item.label) {
         case "id_student":
@@ -213,12 +443,21 @@ export default function HomePage() {
           break;
       }
     });
+
+    const timestampReceived: number[] = [];
+    timestamp.forEach((item) => {
+      const keys = Object.keys(item).map(Number);
+      timestampReceived.push(...keys);
+    });
+    setParsedTime(timestampReceived);
     setAbscissaSet(abscissaDefault);
     setAbscissa(abscissaDefault[0] ?? { label: "Student", data: id_student });
+    setOrdinate(empty);
+    setDefaultOrdinate("");
     setProperties({
       type: "bar",
       structure: {
-        labels: abscissa,
+        labels: abscissaDefault[0] ?? { label: "Student", data: id_student },
         datasets: empty,
       },
     });
@@ -285,11 +524,9 @@ export default function HomePage() {
                   <li key={tag.label} className="flex items-center gap-3">
                     <input
                       id={tag.label}
-                      type="checkbox"
+                      type="radio"
                       onChange={() => handleDatasetChange(tag.label)}
-                      checked={ordinate.some(
-                        (dataset) => dataset.label === tag.label,
-                      )}
+                      checked={defaultOrdinate === tag.label}
                     />
                     <label htmlFor={tag.label}>{tag.label}</label>
                   </li>
@@ -317,11 +554,6 @@ export default function HomePage() {
       <section className="flex w-3/4 flex-col items-center justify-center gap-4">
         <Chart {...properties} />
       </section>
-      <button
-        onClick={() => fetchData({ label: "timestamp", data: [] }, empty, "")}
-      >
-        CLICK ME
-      </button>
     </div>
   );
 }

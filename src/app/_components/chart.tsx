@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -50,6 +50,18 @@ type Props = {
 };
 
 export default function Chart({ type, structure }: Props) {
+  const [chartWidth, setChartWidth] = useState<number>(1100);
+
+  const labelWidth = 50;
+
+  useEffect(() => {
+    let newWidth = structure.labels.data.length * labelWidth;
+    if (newWidth > 7000) newWidth = 7000;
+    if (structure.labels.data.length < 10 || newWidth < 1100)
+      setChartWidth(1100);
+    else setChartWidth(newWidth);
+  }, [structure.labels.data.length, type]);
+
   const commonOptions = {
     plugins: {
       legend: {
@@ -64,6 +76,7 @@ export default function Chart({ type, structure }: Props) {
         color: "#d6f5e6",
       },
     },
+    maintainAspectRatio: false,
     scales: {
       x: {
         display: true,
@@ -72,6 +85,7 @@ export default function Chart({ type, structure }: Props) {
         },
         ticks: {
           color: "#d6f5e6",
+          autoSkip: false,
         },
         border: {
           display: true,
@@ -129,11 +143,14 @@ export default function Chart({ type, structure }: Props) {
   };
 
   return (
-    <div
-      key={type}
-      className="flex h-[100%] w-full items-center justify-center p-2"
-    >
-      {getChartComponent()}
+    <div className="chart-container">
+      <div
+        key={type}
+        className="flex h-[600px] items-center justify-center p-2"
+        style={{ width: chartWidth }}
+      >
+        {getChartComponent()}
+      </div>
     </div>
   );
 }
