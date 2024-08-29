@@ -137,3 +137,7 @@
 .chart-container::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+.candlestick--class {
+  pointer-events: none;
+}
